@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}
+<title>Регістрація аккаунту</title>
+{% endblock %}
+
+{% block body %}
+<h1>Реестрація акаунту</h1>
+
+{% if messages %}
+<ul>
+    {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<form method="POST">
+    {% csrf_token %}
+    
+    <h4>Обов'язкові данні</h4>
+    <p>Введіть юзернейм: <input type="text" name="username" maxlength="16" required></p>
+    <p>Введіть вашу почту: <input type="text" name="email" required></p>
+    <p>Введіть пароль: <input type="password" name="password" required></p>
+    <p>Повторіть пароль: <input type="password" name="password_confirm" required></p>
+
+    <h4>Необов'язкові данні</h4>
+    <p>Введіть ваше ім'я: <input type="text" name="first_name" maxlength="16"></p>
+    <p>Введіть ваше призвище: <input type="text" name="last_name" maxlength="32"></p>
+    <p>Виберіть вашу дату народження: <input type="date" name="birth_date"></p>
+
+    <input type="submit" value="Зарееструвати акаунт">
+</form>
+{% endblock %}
