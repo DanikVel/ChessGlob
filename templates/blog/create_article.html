@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}
+<title>Створення статті</title>
+{% endblock %}
+
+{% block body %}
+<h2>Створення статті</h2>
+
+<form method="post">
+    {% csrf_token %}
+    <p>Введіть назву статті: <input type="text" name="name" maxlength="32" required></p>
+    <p>Виберіть категорію статті: <select name="category">
+        {% for category in categories %}
+        <option value="{{ category }}">{{ category }}</option>
+        {% endfor %}
+        </select>
+    </p>
+    <input type="submit" value="Створити">
+</form>
+{% endblock %}

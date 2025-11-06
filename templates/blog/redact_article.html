@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}
+<title>Редагування статті</title>
+{% endblock %}
+{% load static %}
+{% load custom_tags %}
+
+{% block body %}
+<h2>Редагування статті</h2>
+
+<form method="post" id="myForm" enctype="multipart/form-data">
+    {% csrf_token %}
+    <!-- Шапка статті (ім'я та категорія, бо автор - це той хто редагує) -->
+    <p>Назва статті: <input type="text" name="name" value="{{ article.name }}" maxlength="32" required></p>
+    <p>Категорія статті: <select name="category">
+        {% for category in categories %}
+        <option value="{{ category }}">{{ category }}</option>
+        {% endfor %}
+        </select>
+    </p>
+    <!-- Елементи статті -->
+    {% for element in elements %}
+        {% if element.t == "text" %}<!-- Якщо це текстовий елемент -->
+        <textarea style="resize: both; width: 700px; height: 400px;" name="{{ element.num }}" required>
+        {{ element.text }}
+        </textarea>
+        <br>
+        {% else %}<!-- Якщо це файловий елемент -->
+            {% if element.file.url|endswith:".png" or element.file.url|endswith:".jpg" %}
+            <img src="{{ element.file.url }}" alt="Картинка">
+            {% elif element.file.url|endswith:".mp4" %}
+            <video width="320" height="240" controls>
+                <source src="{{ element.file.url }}" type="video/mp4">
+                На жаль, ваш браузер не підтримує відео
+            </video>
+            {% else %}
+            <a href="{{ element.file.url }}">Завантажити файл</a>
+            {% endif %}
+        {% endif %}
+        <!-- Кнопки для видалення/створення елементу -->
+        <a class="btn btn-danger" onclick="submitTo('{% url 'blog:redact_article' article.pk %}?crud=delete&num={{ element.num }}&t={{ element.t }}')" role="button">Видалити елемент</a>
+        <a class="btn btn-success" onclick="submitTo('{% url 'blog:redact_article' article.pk %}?crud=create&num={{ element.num }}&t=text')" role="button">Створити текстовий елемент</a>
+        <p>Завантажити файл: <input type="file" name="new_file"> <a class="btn btn-success" onclick="submitTo('{% url 'blog:redact_article' article.pk %}?crud=create&num={{ element.num }}&t=file')" role="button">Створити файловий елемент</a></p>
+        <br>
+    {% endfor %}
+    
+    <input type="submit" value="Збрегети статтю">
+</form>
+<!-- Скріпт потрібен, щоб кнопки роботи з елементами передавали дані форми, щоб те що користувач встиг змінити збереглося -->
+<script>
+  function submitTo(url) {
+    const form = document.getElementById('myForm');
+    form.action = url;
+    form.submit();
+  }
+</script>
+{% endblock %}

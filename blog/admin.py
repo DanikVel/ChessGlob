@@ -1,3 +1,7 @@
 from django.contrib import admin
+import blog.models as models
 
-# Register your models here.
+
+admin.site.register(models.Article)
+admin.site.register(models.TextArticleElement)
+admin.site.register(models.FileArticleElement)

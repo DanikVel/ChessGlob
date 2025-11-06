@@ -13,7 +13,7 @@ def login_user(request):
 
         if user is not None:
             login(request, user)
-            return redirect("index")
+            return redirect("blog:index")
         else:
             messages.error(request, "Неправильний пароль чи логін!")
             return render(request, "auth_sys/login.html")
@@ -44,7 +44,7 @@ def register_user(request):
                                                  first_name=first_name, last_name=last_name, birth_date=birth_date)
         login(request, user)
 
-        return redirect("index")
+        return redirect("blog:index")
 
     elif request.method == "GET":
         return render(request, "auth_sys/register.html")

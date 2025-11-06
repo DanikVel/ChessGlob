@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}
+<title>Перегляд статті</title>
+{% endblock %}
+{% load static %}
+{% load custom_tags %}
+
+{% block body %}
+<h2>{{ article.name }}</h2>
+<p>Категорія: {{ article.category }}</p>
+<p>Автор: {{ article.author.username }}</p>
+<br>
+{% for element in elements %}
+    {% if element.t == "text" %}<!-- Якщо це текстовий елемент -->
+        <p>{{ element.text }}</p>
+    {% else %}<!-- Якщо це файловий елемент -->
+        {% if element.file.url|endswith:".png" or element.file.url|endswith:".jpg" %}
+        <img src="{{ element.file.url }}" alt="Картинка">
+        {% elif element.file.url|endswith:".mp4" %}
+        <video width="320" height="240" controls>
+            <source src="{{ element.file.url }}" type="video/mp4">
+            На жаль, ваш браузер не підтримує відео
+        </video>
+        {% else %}
+        <a href="{{ element.file.url }}">Завантажити файл</a>
+        {% endif %}
+    {% endif %}
+{% endfor %}
+{% endblock %}
