@@ -26,8 +26,10 @@
                 </ul>
             </div>
             {% else %}
+            <span>
             <a class="btn btn-secondary" href="{% url 'auth_sys:register' %}" role="button">Зарееструватися</a>
             <a class="btn btn-secondary" href="{% url 'auth_sys:login' %}" role="button">Увійти</a>
+            </span>
             {% endif %}
         </div>
      </nav>

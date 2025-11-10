@@ -14,7 +14,7 @@ def view_article(request, article_pk):
     file_elements = list(models.FileArticleElement.objects.filter(article=article_pk))
     elements = sorted(text_elements+file_elements, key=lambda element: element.num)
     return render(request, "blog/view_article.html", context={"article":models.Article.objects.get(pk=article_pk),
-                                                              "elements":elements})
+                                        "elements":elements, "comments":models.Comment.objects.filter(article=article_pk)})
 
 @login_required
 def create_article(request):
@@ -29,7 +29,7 @@ def create_article(request):
         start_element = models.TextArticleElement.objects.create(article=article, num=0, text="")
         start_element.save()
 
-        return redirect(f"redact_article/{article.pk}")
+        return redirect(f"/redact_article/{article.pk}")
 
 @login_required
 def redact_article(request, article_pk):
@@ -84,7 +84,7 @@ def redact_article(request, article_pk):
             article.elements_num += 1
             article.save()
 
-            return redirect(f"redact_article/{article.pk}")
+            return redirect(f"/redact_article/{article.pk}")
         elif request.GET.get("crud") == "delete": #Якщо користувач видаляє існуючий елемент
             #Видаляємо елемент
             if request.GET.get("t") == "text":
@@ -112,7 +112,7 @@ def redact_article(request, article_pk):
             article.elements_num -= 1
             article.save()
 
-            return redirect(f"redact_article/{article.pk}")
+            return redirect(f"/redact_article/{article.pk}")
 
 @login_required
 def delete_article(request, article_pk):
@@ -127,3 +127,21 @@ def delete_article(request, article_pk):
     article.delete()
 
     return redirect("blog:index")
+
+
+@login_required
+def add_comment(request, article_pk):
+    if request.method == "POST":
+        comment = models.Comment.objects.create(author=request.user, article=models.Article.objects.get(pk=article_pk),
+                                                text=request.POST.get("text"))
+        comment.save()
+        return redirect(f"/view_article/{article_pk}")
+
+@login_required
+def delete_comment(request, article_pk, comment_pk):
+    comment = models.Comment.objects.get(pk=comment_pk)
+    if request.user != comment.author: return redirect(f"blog:index")
+
+    comment.delete()
+
+    return redirect(f"/view_article/{article_pk}")

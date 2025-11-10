@@ -15,10 +15,10 @@
         <div>
             {{ article.author.username }}: <a href="{% url 'blog:view_article' article.pk%}">{{ article.name }}</a> - {{ article.category }}
         </div>
-        {% if request.user == article.author %}
+        {% if user == article.author %}
         <a class="btn btn-warning" href="{% url 'blog:redact_article' article.pk %}" role="button">Редагувати</a>
         {% endif %}
-        {% if request.user == article.author or request.user.role == article.author.Roles.ADMINISTRATOR %}
+        {% if user == article.author or user.role == article.author.Roles.ADMINISTRATOR %}
         <a class="btn btn-warning" href="{% url 'blog:delete_article' article.pk %}" role="button" onclick="return confirm('Ви точно хочете видалити цю статтю?')">Видалити</a>
         {% endif %}
     </li>

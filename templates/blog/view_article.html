@@ -27,4 +27,23 @@
         {% endif %}
     {% endif %}
 {% endfor %}
+<hr>
+{% if comments %}
+<ul>
+    {% for comment in comments %}
+    <li>{{ comment.author.username }}: {{ comment.text }}
+        {% if user == comment.author or user.role == comment.author.Roles.ADMINISTATOR %}
+        <a class="btn btn-danger" href="{% url 'blog:delete_comment' article.pk comment.pk %}" role="button">Видалити</a>
+        {% endif %}
+    </li>
+    {%endfor%}
+</ul>
+{% else %}
+<h3>На жаль до цієї статті не додали коментарів</h3>
+{% endif %}
+<form method="post" action="{% url 'blog:add_comment' article.pk %}">
+    {% csrf_token %}
+    <input type="text" name="text" required>
+    <input type="submit" value="Додати коментар">
+</form>
 {% endblock %}

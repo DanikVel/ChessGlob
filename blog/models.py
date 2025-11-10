@@ -2,6 +2,7 @@ from django.db import models
 from auth_sys.models import MyUser
 
 
+#-----------------------------Моделі статтей
 class Article(models.Model):
     class Categories(models.TextChoices):
         other = "Інше"
@@ -15,7 +16,7 @@ class Article(models.Model):
     category = models.CharField(choices=Categories.choices, default=Categories.other)
     elements_num = models.IntegerField(default=1)
 
-    def __str__(self): return f"{self.author}: {self.name} - {self.category}"
+    def __str__(self): return f"{self.author.username}: {self.name} - {self.category}"
 
 class TextArticleElement(models.Model):
     article = models.ForeignKey(Article, models.CASCADE)
@@ -23,7 +24,7 @@ class TextArticleElement(models.Model):
     t = "text" #t - type. Потрібно, щоб відрізняти TextArticleElement від FileArticleElement
     text = models.TextField()
     
-    def __str__(self): return f"{self.article.name}"
+    def __str__(self): return f"{self.article.name} - {self.num}"
 
 class FileArticleElement(models.Model):
     article = models.ForeignKey(Article, models.CASCADE)
@@ -31,4 +32,12 @@ class FileArticleElement(models.Model):
     t = "file" #t - type. Потрібно, щоб відрізняти TextArticleElement від FileArticleElement
     file = models.FileField(upload_to="articles_media")
 
-    def __str__(self): return f"{self.article.name}"
+    def __str__(self): return f"{self.article.name} - {self.num}"
+
+#-----------------------------Модель коментарів до статей
+class Comment(models.Model):
+    author = models.ForeignKey(MyUser, models.CASCADE)
+    article = models.ForeignKey(Article, models.CASCADE)
+    text = models.CharField()
+
+    def __str__(self): return f"{self.author.username} - {self.article.name}"
