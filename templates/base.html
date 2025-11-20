@@ -25,6 +25,7 @@
                     </li>
                 </ul>
             </div>
+            <a href="{% url 'blog:view_user_info' request.user.username %}"><img src="{% static 'img/standart.png' %}" width="30px" height="30px"></a>
             {% else %}
             <span>
             <a class="btn btn-secondary" href="{% url 'auth_sys:register' %}" role="button">Зарееструватися</a>

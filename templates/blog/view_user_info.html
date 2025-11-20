@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}
+<title>Інформація про {{ user_v.username }}</title>
+{% endblock %}
+{% load static %}
+
+{% block body %}
+<h1>Перегляд інформації про {{ user_v.username }}</h1>
+<p>Почта: {{ user_v.email }}</p>
+{% if user_v.first_name != None %}
+<p>Ім'я: {{ user_v.first_name }}</p>
+{% endif %}
+{% if user_v.last_name != None %}
+<p>Прізвище: {{ user_v.last_name }}</p>
+{% endif %}
+{% if user_v.birth_date != None %}
+<p>Дата народження: {{ user_v.birth_date }}</p>
+{% endif %}
+{% if articles_num == 0 %}
+<p>Нажаль, користувач не писав статтей</p>
+{% else %}
+<p>Користувач написав <a href="#" role="btn">{{ articles_num }}</a> статей</p>
+{% endif %}
+
+{% if request.user == user_v %}
+    <hr>
+    {% if subscriptions != 0 %}
+        <h3>Ваші підписки:</h3>
+        {% for subscription in subscriptions %}
+        <a href="{% url 'blog:view_user_info' subscription.on_whom.username %}">{{ subscription.on_whom.username }}</a><br>
+        {% endfor %}
+    {% else %}
+    <p>В вас не має підписок</p>
+    {% endif %}
+    <br>
+    <a class="btn btn-warning" href="#" role="button">Редагувати профіль</a>
+{% elif user.is_authenticated %}
+    <br>
+    {% if not is_sub %}
+    <a class="btn btn-primary" href="{% url 'blog:subscribe' user_v.pk %}" role="button">Підписатися</a>
+    {% else %}
+    <a class="btn btn-primary" href="{% url 'blog:unsubscribe' user_v.pk %}" role="button">Відписатися</a>
+    {% endif %}
+{% endif %}
+{% endblock %}

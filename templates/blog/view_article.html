@@ -9,7 +9,7 @@
 {% block body %}
 <h2>{{ article.name }}</h2>
 <p>Категорія: {{ article.category }}</p>
-<p>Автор: {{ article.author.username }}</p>
+<p>Автор: <a href="{% url 'blog:view_user_info' article.author.username %}">{{ article.author.username }}</a></p>
 <br>
 {% for element in elements %}
     {% if element.t == "text" %}<!-- Якщо це текстовий елемент -->

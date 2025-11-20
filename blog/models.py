@@ -41,3 +41,9 @@ class Comment(models.Model):
     text = models.CharField()
 
     def __str__(self): return f"{self.author.username} - {self.article.name}"
+
+#-----------------------------Модель підписок користувачів
+class Subscription(models.Model): #Підписка користувача, на іншого користувача, щоб отримувати інформацію про його статті
+    who = models.ForeignKey(MyUser, models.CASCADE, related_name="subscription_who")
+    on_whom = models.ForeignKey(MyUser, models.CASCADE, related_name="subscription_on_whom")
+    email_newsletter = models.BooleanField(default=False)

@@ -20,7 +20,6 @@ class MyUserManager(BaseUserManager):
 
         return self.create_user(username, email, password, **extra_fields)
 
-
 class MyUser(AbstractBaseUser, PermissionsMixin):
     class Roles(models.TextChoices): #Усі можливі ролі
         USER = "user"

@@ -9,6 +9,17 @@ def index(request):
     return render(request, "blog/index.html", {"articles":models.Article.objects.all()})
 
 
+def view_user_info(request, username):
+    context = {"user_v":MyUser.objects.get(username=username)}
+    context["articles_num"] = models.Article.objects.filter(author=context["user_v"]).count()
+    context["subscriptions"] = models.Subscription.objects.filter(who=context["user_v"])
+    if context["subscriptions"].count() == 0: context["subscriptions"] = 0
+    if request.user.is_authenticated:
+        context["is_sub"] = models.Subscription.objects.filter(who=request.user, on_whom=context["user_v"]).exists()
+    
+    return render(request, "blog/view_user_info.html", context)
+
+
 def view_article(request, article_pk):
     text_elements = list(models.TextArticleElement.objects.filter(article=article_pk))
     file_elements = list(models.FileArticleElement.objects.filter(article=article_pk))
@@ -145,3 +156,22 @@ def delete_comment(request, article_pk, comment_pk):
     comment.delete()
 
     return redirect(f"/view_article/{article_pk}")
+
+
+@login_required
+def subscribe(request, user_pk):
+    on_whom = models.MyUser.objects.get(pk=user_pk)
+    subscription = models.Subscription.objects.create(who=request.user, on_whom=on_whom)
+    subscription.save()
+
+    return redirect(f"/view_user_info/{request.user.username}")
+
+@login_required
+def unsubscribe(request, user_pk):
+    on_whom = models.MyUser.objects.get(pk=user_pk)
+    subscription = models.Subscription.objects.get(who=request.user, on_whom=on_whom)
+    if request.user != subscription.who: return redirect(f"blog:index")
+
+    subscription.delete()
+
+    return redirect(f"/view_user_info/{request.user.username}")
