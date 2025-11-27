@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 import blog.models as models
 from auth_sys.models import MyUser
+from rest_framework import generics #Для API
+import blog.serializers as serializer #Для API
 
 
 
@@ -205,3 +207,12 @@ def unsubscribe(request, user_pk):
     subscription.delete()
 
     return redirect(f"/view_user_info/{request.user.username}")
+
+
+class MyUserListView(generics.ListAPIView):
+    queryset = MyUser.objects.all()
+    serializer_class = serializer.MyUserSerialezer
+
+class MyUserDetailView(generics.RetrieveAPIView):
+    queryset = MyUser.objects.all()
+    serializer_class = serializer.MyUserSerialezer
