@@ -8,8 +8,16 @@ from auth_sys.models import MyUser
 def index(request):
     return render(request, "blog/index.html", {"articles":models.Article.objects.all()})
 
+def eror(request):
+    if request.GET.get("eror_text") != None:
+        return render(request, "eror.html", context={"eror_text":request.GET.get("eror_text")})
+    else:
+        return render(request, "eror.html", context={"eror_text":"А як ти надіслав запит без тексту?:)"})
+
 
 def view_user_info(request, username):
+    if not MyUser.objects.filter(username=username).exists():
+        return redirect("/eror?eror_text=Користувача з таким юзернеймом не існує.")
     context = {"user_v":MyUser.objects.get(username=username)}
     context["articles_num"] = models.Article.objects.filter(author=context["user_v"]).count()
     context["subscriptions"] = models.Subscription.objects.filter(who=context["user_v"])
@@ -21,6 +29,8 @@ def view_user_info(request, username):
 
 
 def view_article(request, article_pk):
+    if not models.Article.objects.filter(pk=article_pk).exists():
+        return redirect("/eror?eror_text=Статті з таким pk не існує.")
     text_elements = list(models.TextArticleElement.objects.filter(article=article_pk))
     file_elements = list(models.FileArticleElement.objects.filter(article=article_pk))
     elements = sorted(text_elements+file_elements, key=lambda element: element.num)
@@ -44,8 +54,11 @@ def create_article(request):
 
 @login_required
 def redact_article(request, article_pk):
+    if not models.Article.objects.filter(pk=article_pk).exists():
+        return redirect("/eror?eror_text=Статті з таким pk не існує.")
     article = models.Article.objects.get(pk=article_pk)
-    if request.user != article.author: return redirect("blog:index")
+    if request.user != article.author:
+        return redirect("/eror?eror_text=Ви не можете редагувати чужі статті.")
     
     if request.method == "GET":
         text_elements = list(models.TextArticleElement.objects.filter(article=article_pk))
@@ -124,11 +137,16 @@ def redact_article(request, article_pk):
             article.save()
 
             return redirect(f"/redact_article/{article.pk}")
+        else:
+            return redirect("/eror?eror_text=crud не правильний.")
 
 @login_required
 def delete_article(request, article_pk):
+    if not models.Article.objects.filter(pk=article_pk).exists():
+        return redirect("/eror?eror_text=Статті з таким pk не існує.")
     article = models.Article.objects.get(pk=article_pk)
-    if request.user != article.author: return redirect("blog:index")
+    if request.user != article.author:
+        return redirect("/eror?eror_text=Ви не можете видаляти чужі статті.")
     
     text_elements = list(models.TextArticleElement.objects.filter(article=article_pk))
     file_elements = list(models.FileArticleElement.objects.filter(article=article_pk))
@@ -143,15 +161,24 @@ def delete_article(request, article_pk):
 @login_required
 def add_comment(request, article_pk):
     if request.method == "POST":
+        if not models.Article.objects.filter(pk=article_pk).exists():
+            return redirect("/eror?eror_text=Статті з таким pk не існує.")
         comment = models.Comment.objects.create(author=request.user, article=models.Article.objects.get(pk=article_pk),
                                                 text=request.POST.get("text"))
         comment.save()
         return redirect(f"/view_article/{article_pk}")
+    else:
+        return redirect("/eror?eror_text=Додати коментарій можна лише за допомогою POST запитів.")
 
 @login_required
 def delete_comment(request, article_pk, comment_pk):
+    if not models.Article.objects.filter(pk=article_pk).exists():
+        return redirect("/eror?eror_text=Статті з таким pk не існує.")
+    if not models.Comment.objects.filter(pk=comment_pk).exists():
+        return redirect("/eror?eror_text=Коментаря з таким pk не існує.")
     comment = models.Comment.objects.get(pk=comment_pk)
-    if request.user != comment.author: return redirect(f"blog:index")
+    if request.user != comment.author:
+        return redirect("/eror?eror_text=Ви не можете видаляти чужі коментарі.")
 
     comment.delete()
 
@@ -160,6 +187,8 @@ def delete_comment(request, article_pk, comment_pk):
 
 @login_required
 def subscribe(request, user_pk):
+    if not MyUser.objects.filter(pk=user_pk).exists():
+        return redirect("/eror?eror_text=Користувача з таким pk не існує.")
     on_whom = models.MyUser.objects.get(pk=user_pk)
     subscription = models.Subscription.objects.create(who=request.user, on_whom=on_whom)
     subscription.save()
@@ -168,9 +197,10 @@ def subscribe(request, user_pk):
 
 @login_required
 def unsubscribe(request, user_pk):
+    if not MyUser.objects.filter(pk=user_pk).exists():
+        return redirect("/eror?eror_text=Користувача з таким pk не існує.")
     on_whom = models.MyUser.objects.get(pk=user_pk)
     subscription = models.Subscription.objects.get(who=request.user, on_whom=on_whom)
-    if request.user != subscription.who: return redirect(f"blog:index")
 
     subscription.delete()
 
