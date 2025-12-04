@@ -1,14 +1,46 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count
 import blog.models as models
 from auth_sys.models import MyUser
 from rest_framework import generics #Для API
 import blog.serializers as serializer #Для API
+import datetime #Для часу, коли було створенно статю
 
 
 
 def index(request):
-    return render(request, "blog/index.html", {"articles":models.Article.objects.all()})
+    categories = [choice.value for choice in models.Article.Categories]
+    if request.method == "GET":
+        articles = models.Article.objects.annotate(like_count=Count('like', distinct=True))
+        articles = articles.annotate(dislike_count=Count("dislike", distinct=True))
+        articles = articles.order_by("-created_time")
+        return render(request, "blog/index.html", {"articles":articles, "categories":categories})
+    elif request.method == "POST":
+        articles = models.Article.objects.annotate(like_count=Count('like', distinct=True))
+        articles = articles.annotate(dislike_count=Count("dislike", distinct=True))
+
+        category = request.POST.get("category")
+        if category == None: return redirect("/eror?eror_text=В формі відсутня 'category'.")
+        elif category not in categories and category != "all":
+            return redirect(f"/eror?eror_text=Категорії '{category}' не існує.")
+        by = request.POST.get("by")
+        if by == None: return redirect("/eror?eror_text=В формі відстуня 'by'.")
+        elif by not in ["by_newest", "by_popularity"]:
+            return redirect(f"/eror?eror_text=Ми не можемо відфільтрувати за {by}.")
+        author = request.POST.get("author")
+        if author == None: return redirect("/eror?eror_text=В формі відстуній 'author'.")
+
+        if category != "all": articles = articles.filter(category=category)
+        if by == "by_popularity": articles = articles.order_by("-like_count")
+        elif by == "by_newest": articles = articles.order_by("-created_time")
+        if author != "":
+            if MyUser.objects.filter(username=author).exists():
+                articles = articles.filter(author=MyUser.objects.get(username=author))
+
+        return render(request, "blog/index.html", {"articles":articles, "categories":categories})
+    else:
+        return redirect("/eror?eror_text=Головна сторінка приймає лише GET і POST запити.")
 
 def eror(request):
     if request.GET.get("eror_text") != None:
@@ -36,8 +68,13 @@ def view_article(request, article_pk):
     text_elements = list(models.TextArticleElement.objects.filter(article=article_pk))
     file_elements = list(models.FileArticleElement.objects.filter(article=article_pk))
     elements = sorted(text_elements+file_elements, key=lambda element: element.num)
+    liked = 0
+    if not request.user.is_authenticated: liked = None
+    elif models.Like.objects.filter(article=article_pk, author=request.user).exists(): liked = 1
+    elif models.Dislike.objects.filter(article=article_pk, author=request.user).exists(): liked = -1
     return render(request, "blog/view_article.html", context={"article":models.Article.objects.get(pk=article_pk),
-                                        "elements":elements, "comments":models.Comment.objects.filter(article=article_pk)})
+                                        "elements":elements, "comments":models.Comment.objects.filter(article=article_pk),
+                                        "liked":liked})
 
 @login_required
 def create_article(request):
@@ -47,7 +84,8 @@ def create_article(request):
     elif request.method == "POST":
         article = models.Article.objects.create(author=request.user,
                                                 name=request.POST.get("name"),
-                                                category=request.POST.get("category"))
+                                                category=request.POST.get("category"),
+                                                created_time=datetime.datetime.now())
         article.save()
         start_element = models.TextArticleElement.objects.create(article=article, num=0, text="")
         start_element.save()
@@ -183,6 +221,59 @@ def delete_comment(request, article_pk, comment_pk):
         return redirect("/eror?eror_text=Ви не можете видаляти чужі коментарі.")
 
     comment.delete()
+
+    return redirect(f"/view_article/{article_pk}")
+
+
+@login_required
+def like_article(request, article_pk):
+    if not models.Article.objects.filter(pk=article_pk).exists():
+        return redirect("/eror?eror_text=Статті з таким pk не існує.")
+    if models.Like.objects.filter(article=article_pk, author=request.user).exists():
+        return redirect("/eror?eror_text=Ця стаття вами вже лайкнута.")
+    
+    dislike = models.Dislike.objects.filter(article=article_pk, author=request.user)
+    if dislike.exists(): dislike.delete()
+
+    like = models.Like.objects.create(article=models.Article.objects.get(pk=article_pk), author=request.user)
+    like.save()
+
+    return redirect(f"/view_article/{article_pk}")
+
+@login_required
+def unlike_article(request, article_pk):
+    if not models.Article.objects.filter(pk=article_pk).exists():
+        return redirect("/eror?eror_text=Статті з таким pk не існує.")
+    if not models.Like.objects.filter(article=article_pk, author=request.user).exists():
+        return redirect("/eror?eror_text=Ви не ставили лайку на цю статтю.")
+    
+    models.Like.objects.get(article=article_pk, author=request.user).delete()
+
+    return redirect(f"/view_article/{article_pk}")
+
+@login_required
+def dislike_article(request, article_pk):
+    if not models.Article.objects.filter(pk=article_pk).exists():
+        return redirect("/eror?eror_text=Статті з таким pk не існує.")
+    if models.Dislike.objects.filter(article=article_pk, author=request.user).exists():
+        return redirect("/eror?eror_text=Ця стаття вами вже дізлайкнута.")
+    
+    like = models.Like.objects.filter(article=article_pk, author=request.user)
+    if like.exists(): like.delete()
+
+    dislike = models.Dislike.objects.create(article=models.Article.objects.get(pk=article_pk), author=request.user)
+    dislike.save()
+
+    return redirect(f"/view_article/{article_pk}")
+
+@login_required
+def undislike_article(request, article_pk):
+    if not models.Article.objects.filter(pk=article_pk).exists():
+        return redirect("/eror?eror_text=Статті з таким pk не існує.")
+    if not models.Dislike.objects.filter(article=article_pk, author=request.user).exists():
+        return redirect("/eror?eror_text=Ви не ставили дізлайку на цю статтю.")
+    
+    models.Dislike.objects.get(article=article_pk, author=request.user).delete()
 
     return redirect(f"/view_article/{article_pk}")
 

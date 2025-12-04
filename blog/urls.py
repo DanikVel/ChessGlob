@@ -16,6 +16,11 @@ urlpatterns = [
     path("add_comment/<int:article_pk>", views.add_comment, name="add_comment"),
     path("delete_comment/<int:article_pk>/<int:comment_pk>", views.delete_comment, name="delete_comment"),
 
+    path("like_article/<int:article_pk>", views.like_article, name="like_article"),
+    path("unlike_article/<int:article_pk>", views.unlike_article, name="unlike_article"),
+    path("dislike_article/<int:article_pk>", views.dislike_article, name="dislike_article"),
+    path("undislike_article/<int:article_pk>", views.undislike_article, name="undislike_article"),
+
     path("subscribe/<int:user_pk>", views.subscribe, name="subscribe"),
     path("unsubscribe/<int:user_pk>", views.unsubscribe, name="unsubscribe"),
     

@@ -14,6 +14,7 @@ class Article(models.Model):
     author = models.ForeignKey(MyUser, models.CASCADE)
     name = models.CharField(max_length=32)
     category = models.CharField(choices=Categories.choices, default=Categories.other)
+    created_time = models.DateTimeField()
     elements_num = models.IntegerField(default=1)
 
     def __str__(self): return f"{self.author.username}: {self.name} - {self.category}"
@@ -41,6 +42,15 @@ class Comment(models.Model):
     text = models.CharField()
 
     def __str__(self): return f"{self.author.username} - {self.article.name}"
+
+#-----------------------------Модель лайку/дізлайку до статей
+class Like(models.Model):
+    article = models.ForeignKey(Article, models.CASCADE, related_name="like")
+    author = models.ForeignKey(MyUser, models.CASCADE)
+
+class Dislike(models.Model):
+    article = models.ForeignKey(Article, models.CASCADE, related_name="dislike")
+    author = models.ForeignKey(MyUser, models.CASCADE)
 
 #-----------------------------Модель підписок користувачів
 class Subscription(models.Model): #Підписка користувача, на іншого користувача, щоб отримувати інформацію про його статті
