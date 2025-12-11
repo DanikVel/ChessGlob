@@ -42,6 +42,37 @@ def index(request):
     else:
         return redirect("/eror?eror_text=Головна сторінка приймає лише GET і POST запити.")
 
+@login_required
+def view_my_articles(request):
+    categories = [choice.value for choice in models.Article.Categories]
+    if request.method == "GET":
+        articles = models.Article.objects.filter(author=request.user)
+        articles = articles.annotate(like_count=Count('like', distinct=True))
+        articles = articles.annotate(dislike_count=Count("dislike", distinct=True))
+        articles = articles.order_by("-created_time")
+        return render(request, "blog/view_my_articles.html", {"articles":articles, "categories":categories})
+    elif request.method == "POST":
+        articles = models.Article.objects.filter(author=request.user)
+        articles = articles.annotate(like_count=Count('like', distinct=True))
+        articles = articles.annotate(dislike_count=Count("dislike", distinct=True))
+
+        category = request.POST.get("category")
+        if category == None: return redirect("/eror?eror_text=В формі відсутня 'category'.")
+        elif category not in categories and category != "all":
+            return redirect(f"/eror?eror_text=Категорії '{category}' не існує.")
+        by = request.POST.get("by")
+        if by == None: return redirect("/eror?eror_text=В формі відстуня 'by'.")
+        elif by not in ["by_newest", "by_popularity"]:
+            return redirect(f"/eror?eror_text=Ми не можемо відфільтрувати за {by}.")
+        
+        if category != "all": articles = articles.filter(category=category)
+        if by == "by_popularity": articles = articles.order_by("-like_count")
+        elif by == "by_newest": articles = articles.order_by("-created_time")
+
+        return render(request, "blog/view_my_articles.html", {"articles":articles, "categories":categories})
+    else:
+        return redirect("/eror?eror_text=Сторінка для перегляду ваших статтей приймає лише GET і POST запити.")
+
 def eror(request):
     if request.GET.get("eror_text") != None:
         return render(request, "eror.html", context={"eror_text":request.GET.get("eror_text")})
