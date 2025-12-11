@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}
+<title>ChessGlob</title>
+{% endblock %}
+{% load static %}
+{% load custom_tags %}
+
+{% block body %}
+<h3>Статті {{ username }}:</h3>
+<!-- Форма для фільтрування -->
+<form method="post" class="form-inline mb-3 d-flex justify-content-between align-items-center">
+    {% csrf_token %}
+    <p class="form-control">За категорією: <select name="category" class="form-control">
+        <option value="all">Всі категорії</option>
+        {% for category in categories %}
+        <option value="{{ category }}">{{ category }}</option>
+        {% endfor %}
+    </select></p>
+    <select name="by" class="form-control">
+        <option value="by_newest">За новизною</option>
+        <option value="by_popularity">За популярністю</option>
+    </select>
+    <input type="submit" value="Відфільтрувати">
+</form>
+
+<ul class="list-group">
+    {% for article in articles %}
+    <li class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center">
+        <div>
+            <a href="{% url 'blog:view_article' article.pk%}">{{ article.name }}</a> - {{ article.category }}
+        </div>
+        <p><img src="{% static 'img/not_pressed_like.png' %}" width="25px" height="25px"> {{ article.like_count }}</p>
+        <p><img src="{% static 'img/not_pressed_dislike.png' %}" width="25px" height="25px"> {{ article.dislike_count }}</p>
+        {% if user == article.author %}
+        <a class="btn btn-warning" href="{% url 'blog:redact_article' article.pk %}" role="button">Редагувати</a>
+        {% endif %}
+        {% if user == article.author or user.role == article.author.Roles.ADMINISTRATOR %}
+        <a class="btn btn-danger" href="{% url 'blog:delete_article' article.pk %}" role="button" onclick="return confirm('Ви точно хочете видалити цю статтю?')">Видалити</a>
+        {% endif %}
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

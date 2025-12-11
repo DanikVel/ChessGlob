@@ -20,7 +20,7 @@
 {% if articles_num == 0 %}
 <p>Нажаль, користувач не писав статтей</p>
 {% else %}
-<p>Користувач написав <a href="#" role="btn">{{ articles_num }}</a> статей</p>
+<p>Користувач написав <a href="{% url 'blog:view_user_articles' user_v.username %}" role="btn">{{ articles_num }}</a> статей</p>
 {% endif %}
 
 {% if request.user == user_v %}

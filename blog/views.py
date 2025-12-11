@@ -92,6 +92,40 @@ def view_user_info(request, username):
     
     return render(request, "blog/view_user_info.html", context)
 
+def view_user_articles(request, username):
+    if not MyUser.objects.filter(username=username).exists():
+        return redirect("/eror?eror_text=Не існує користувача з таким username.")
+    user = MyUser.objects.get(username=username)
+    categories = [choice.value for choice in models.Article.Categories]
+    if request.method == "GET":
+        articles = models.Article.objects.filter(author=user)
+        articles = articles.annotate(like_count=Count('like', distinct=True))
+        articles = articles.annotate(dislike_count=Count("dislike", distinct=True))
+        articles = articles.order_by("-created_time")
+        return render(request, "blog/view_user_articles.html", {"articles":articles, "categories":categories,
+                                                                "username":username})
+    elif request.method == "POST":
+        articles = models.Article.objects.filter(author=user)
+        articles = articles.annotate(like_count=Count('like', distinct=True))
+        articles = articles.annotate(dislike_count=Count("dislike", distinct=True))
+
+        category = request.POST.get("category")
+        if category == None: return redirect("/eror?eror_text=В формі відсутня 'category'.")
+        elif category not in categories and category != "all":
+            return redirect(f"/eror?eror_text=Категорії '{category}' не існує.")
+        by = request.POST.get("by")
+        if by == None: return redirect("/eror?eror_text=В формі відстуня 'by'.")
+        elif by not in ["by_newest", "by_popularity"]:
+            return redirect(f"/eror?eror_text=Ми не можемо відфільтрувати за {by}.")
+        
+        if category != "all": articles = articles.filter(category=category)
+        if by == "by_popularity": articles = articles.order_by("-like_count")
+        elif by == "by_newest": articles = articles.order_by("-created_time")
+        
+        return render(request, "blog/view_user_articles.html", {"articles":articles, "categories":categories,
+                                                                "username":username})
+    else:
+        return redirect("/eror?eror_text=Сторінка для перегляду статтей конкретної людини не приймає такий тип запиту.")
 
 def view_article(request, article_pk):
     if not models.Article.objects.filter(pk=article_pk).exists():
