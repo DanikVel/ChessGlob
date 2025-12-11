@@ -39,7 +39,7 @@
         <a class="btn btn-warning" href="{% url 'blog:redact_article' article.pk %}" role="button">Редагувати</a>
         {% endif %}
         {% if user == article.author or user.role == article.author.Roles.ADMINISTRATOR %}
-        <a class="btn btn-warning" href="{% url 'blog:delete_article' article.pk %}" role="button" onclick="return confirm('Ви точно хочете видалити цю статтю?')">Видалити</a>
+        <a class="btn btn-danger" href="{% url 'blog:delete_article' article.pk %}" role="button" onclick="return confirm('Ви точно хочете видалити цю статтю?')">Видалити</a>
         {% endif %}
     </li>
     {% endfor %}
