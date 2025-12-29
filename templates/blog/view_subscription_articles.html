@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
 {% block title %}
-<title>Мої статті</title>
+<title>ChessGlob</title>
 {% endblock %}
 {% load static %}
 {% load custom_tags %}
 
 {% block body %}
-<h3>Ваші статті:</h3>
+<h3>Статті авторів, на яких ви підписанні:</h3>
 <!-- Форма для фільтрування -->
 <form method="post" class="form-inline mb-3 d-flex justify-content-between align-items-center">
     {% csrf_token %}
@@ -21,6 +21,7 @@
         <option value="by_newest">За новизною</option>
         <option value="by_popularity">За популярністю</option>
     </select>
+    <p class="form-control">Автор: <input type="text" name="author" maxlength="16"></p>
     <input type="submit" value="Відфільтрувати">
 </form>
 
@@ -28,12 +29,13 @@
     {% for article in articles %}
     <li class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center">
         <div>
-            <a href="{% url 'blog:view_article' article.pk%}">{{ article.name }}</a> - {{ article.category }}
+            {{ article.author.username }}: <a href="{% url 'blog:view_article' article.pk%}">{{ article.name }}</a> - {{ article.category }}
         </div>
         <p><img src="{% static 'img/not_pressed_like.png' %}" width="25px" height="25px"> {{ article.like_count }}</p>
         <p><img src="{% static 'img/not_pressed_dislike.png' %}" width="25px" height="25px"> {{ article.dislike_count }}</p>
-        <a class="btn btn-warning" href="{% url 'blog:redact_article' article.pk %}" role="button">Редагувати</a>
+        {% if user.role == article.author.Roles.ADMINISTRATOR %}
         <a class="btn btn-danger" href="{% url 'blog:delete_article' article.pk %}" role="button" onclick="return confirm('Ви точно хочете видалити цю статтю?')">Видалити</a>
+        {% endif %}
     </li>
     {% endfor %}
 </ul>

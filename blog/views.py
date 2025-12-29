@@ -10,16 +10,16 @@ import datetime #Для часу, коли було створенно стат�
 
 
 def index(request):
+    if request.method not in ["GET", "POST"]:
+        return redirect("/eror?eror_text=Головна сторінка приймає лише GET і POST запити.")
+
     categories = [choice.value for choice in models.Article.Categories]
+    articles = models.Article.objects.annotate(like_count=Count('like', distinct=True))
+    articles = articles.annotate(dislike_count=Count("dislike", distinct=True))
     if request.method == "GET":
-        articles = models.Article.objects.annotate(like_count=Count('like', distinct=True))
-        articles = articles.annotate(dislike_count=Count("dislike", distinct=True))
         articles = articles.order_by("-created_time")
         return render(request, "blog/index.html", {"articles":articles, "categories":categories})
     elif request.method == "POST":
-        articles = models.Article.objects.annotate(like_count=Count('like', distinct=True))
-        articles = articles.annotate(dislike_count=Count("dislike", distinct=True))
-
         category = request.POST.get("category")
         if category == None: return redirect("/eror?eror_text=В формі відсутня 'category'.")
         elif category not in categories and category != "all":
@@ -39,23 +39,20 @@ def index(request):
                 articles = articles.filter(author=MyUser.objects.get(username=author))
 
         return render(request, "blog/index.html", {"articles":articles, "categories":categories})
-    else:
-        return redirect("/eror?eror_text=Головна сторінка приймає лише GET і POST запити.")
 
 @login_required
 def view_my_articles(request):
+    if request.method not in ["GET", "POST"]:
+        return redirect("/eror?eror_text=Сторінка для перегляду ваших статтей приймає лише GET і POST запити.")
+
     categories = [choice.value for choice in models.Article.Categories]
+    articles = models.Article.objects.filter(author=request.user)
+    articles = articles.annotate(like_count=Count('like', distinct=True))
+    articles = articles.annotate(dislike_count=Count("dislike", distinct=True))
     if request.method == "GET":
-        articles = models.Article.objects.filter(author=request.user)
-        articles = articles.annotate(like_count=Count('like', distinct=True))
-        articles = articles.annotate(dislike_count=Count("dislike", distinct=True))
         articles = articles.order_by("-created_time")
         return render(request, "blog/view_my_articles.html", {"articles":articles, "categories":categories})
     elif request.method == "POST":
-        articles = models.Article.objects.filter(author=request.user)
-        articles = articles.annotate(like_count=Count('like', distinct=True))
-        articles = articles.annotate(dislike_count=Count("dislike", distinct=True))
-
         category = request.POST.get("category")
         if category == None: return redirect("/eror?eror_text=В формі відсутня 'category'.")
         elif category not in categories and category != "all":
@@ -70,8 +67,34 @@ def view_my_articles(request):
         elif by == "by_newest": articles = articles.order_by("-created_time")
 
         return render(request, "blog/view_my_articles.html", {"articles":articles, "categories":categories})
-    else:
+
+@login_required
+def view_subscription_articles(request):
+    if request.method not in ["GET", "POST"]:
         return redirect("/eror?eror_text=Сторінка для перегляду ваших статтей приймає лише GET і POST запити.")
+    
+    categories = [choice.value for choice in models.Article.Categories]
+    articles = models.Article.objects.filter(author__in=models.Subscription.objects.filter(who=request.user).values('on_whom'))
+    articles = articles.annotate(like_count=Count('like', distinct=True))
+    articles = articles.annotate(dislike_count=Count("dislike", distinct=True))
+    if request.method == "GET":
+        articles = articles.order_by("-created_time")
+        return render(request, "blog/view_subscription_articles.html", {"articles":articles, "categories":categories})
+    elif request.method == "POST":
+        category = request.POST.get("category")
+        if category == None: return redirect("/eror?eror_text=В формі відсутня 'category'.")
+        elif category not in categories and category != "all":
+            return redirect(f"/eror?eror_text=Категорії '{category}' не існує.")
+        by = request.POST.get("by")
+        if by == None: return redirect("/eror?eror_text=В формі відстуня 'by'.")
+        elif by not in ["by_newest", "by_popularity"]:
+            return redirect(f"/eror?eror_text=Ми не можемо відфільтрувати за {by}.")
+        
+        if category != "all": articles = articles.filter(category=category)
+        if by == "by_popularity": articles = articles.order_by("-like_count")
+        elif by == "by_newest": articles = articles.order_by("-created_time")
+
+        return render(request, "blog/view_subscription_articles.html", {"articles":articles, "categories":categories})
 
 def eror(request):
     if request.GET.get("eror_text") != None:
@@ -126,6 +149,7 @@ def view_user_articles(request, username):
                                                                 "username":username})
     else:
         return redirect("/eror?eror_text=Сторінка для перегляду статтей конкретної людини не приймає такий тип запиту.")
+
 
 def view_article(request, article_pk):
     if not models.Article.objects.filter(pk=article_pk).exists():

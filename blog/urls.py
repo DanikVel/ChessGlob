@@ -5,6 +5,7 @@ import blog.views as views
 urlpatterns = [
     path("", views.index, name="index"),
     path("view_my_articles", views.view_my_articles, name="view_my_articles"),
+    path("view_subscription_articles", views.view_subscription_articles, name="view_subscription_articles"),
     path("eror", views.eror, name="eror"),
 
     path("view_user_info/<str:username>", views.view_user_info, name="view_user_info"),
