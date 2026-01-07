@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}
+<title>Редагування профілю</title>
+{% endblock %}
+{% load static %}
+{% load custom_tags %}
+
+{% block body %}
+<h2>Редагування профілю</h2>
+
+{% if messages %}
+<ul>
+    {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<form method="POST">:
+    {% csrf_token %}
+    <p>Ваш юзернейм: <input type="text" name="username" maxlength="16" value="{{ user.username }}" required></p>
+
+    {% if user.first_name != None %}
+    <p>Ваше ім'я: <input type="text" name="first_name" maxlength="16" value="{{ user.first_name }}"></p>
+    {% else %}
+    <p>Введіть ваше ім'я: <input type="text" name="first_name" maxlength="16"></p>
+    {% endif %}
+    {% if user.last_name != None %}
+    <p>Ваше призвище: <input type="text" name="last_name" maxlength="32" value="{{ user.last_name }}"></p>
+    {% else %}
+    <p>Введіть ваше призвище: <input type="text" name="last_name" maxlength="32"></p>
+    {% endif %}
+    <p>Виберіть вашу дату народження: <input type="date" name="birth_date" value="{{ user.birth_date }}"></p>
+
+    <input type="submit" value="Зберегти">
+
+</form>
+{% endblock %}

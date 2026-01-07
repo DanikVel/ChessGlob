@@ -9,6 +9,7 @@ urlpatterns = [
     path("eror", views.eror, name="eror"),
 
     path("view_user_info/<str:username>", views.view_user_info, name="view_user_info"),
+    path("redact_my_info", views.redact_my_info, name="redact_my_info"),
     path("view_user_articles/<str:username>", views.view_user_articles, name="view_user_articles"),
 
     path("view_article/<int:article_pk>", views.view_article, name="view_article"),

@@ -34,7 +34,9 @@
     <p>В вас не має підписок</p>
     {% endif %}
     <br>
-    <a class="btn btn-warning" href="#" role="button">Редагувати профіль</a>
+    <a class="btn btn-secondary" href="{% url 'auth_sys:logout' %}" role="button">Вийти з аккаунту</a>
+    <br>
+    <a class="btn btn-warning" href="{% url 'blog:redact_my_info' %}" role="button">Редагувати профіль</a>
 {% elif user.is_authenticated %}
     <br>
     {% if not is_sub %}

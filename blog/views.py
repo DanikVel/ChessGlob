@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.db.models import Count
 import blog.models as models
 from auth_sys.models import MyUser
@@ -114,6 +115,32 @@ def view_user_info(request, username):
         context["is_sub"] = models.Subscription.objects.filter(who=request.user, on_whom=context["user_v"]).exists()
     
     return render(request, "blog/view_user_info.html", context)
+
+@login_required
+def redact_my_info(request):
+    if request.method == "GET":
+        return render(request, "blog/redact_my_info.html")
+    elif request.method == "POST":
+        username = request.POST.get("username")
+        if username == None: return redirect("/eror?eror_text=Для редагування вашої інформації потрібен юзернейм.")
+        elif username != request.user.username and MyUser.objects.filter(username=username).exists():
+            messages.error(request, "Пробачте, але цей юзернейм вже зайнят!")
+            return render(request, "blog/redact_my_info.html")
+        first_name, last_name = request.POST.get("first_name"), request.POST.get("last_name")
+        if first_name == "": first_name = None
+        if last_name == "": last_name = None
+        birth_date = request.POST.get("birth_date")
+        if birth_date == "": birth_date = None
+
+        user = MyUser.objects.get(username=request.user.username)
+        user.username = username
+        user.first_name, user.last_name = first_name, last_name
+        user.birth_date = birth_date
+        user.save()
+
+        return redirect(f"/view_user_info/{user.username}")
+    else:
+        return redirect("/eror?eror_text=Сторінка редагування вашого профілю приймає лише GET і POST запити.")
 
 def view_user_articles(request, username):
     if not MyUser.objects.filter(username=username).exists():
@@ -372,6 +399,8 @@ def subscribe(request, user_pk):
     if not MyUser.objects.filter(pk=user_pk).exists():
         return redirect("/eror?eror_text=Користувача з таким pk не існує.")
     on_whom = models.MyUser.objects.get(pk=user_pk)
+    if request.user == on_whom:
+        return redirect("/eror?eror_text=Ви не можете підписатися самі на себе.")
     subscription = models.Subscription.objects.create(who=request.user, on_whom=on_whom)
     subscription.save()
 
@@ -382,6 +411,8 @@ def unsubscribe(request, user_pk):
     if not MyUser.objects.filter(pk=user_pk).exists():
         return redirect("/eror?eror_text=Користувача з таким pk не існує.")
     on_whom = models.MyUser.objects.get(pk=user_pk)
+    if not models.Subscription.objects.filter(who=request.user, on_whom=on_whom).exists():
+        return redirect("/eror?eror_text=Ви не можете відписатися від того, на кого не підписанні.")
     subscription = models.Subscription.objects.get(who=request.user, on_whom=on_whom)
 
     subscription.delete()
