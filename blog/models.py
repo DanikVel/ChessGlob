@@ -9,7 +9,7 @@ class Article(models.Model):
         debut = "Дебют"
         middle_game = "Мітельшпіль"
         end_game = "Ендшпіль"
-        history = "Історія"
+        history = "Історія шахів"
         etude = "Шахові задачки"
     author = models.ForeignKey(MyUser, models.CASCADE)
     name = models.CharField(max_length=32)

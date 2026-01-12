@@ -399,8 +399,11 @@ def subscribe(request, user_pk):
     if not MyUser.objects.filter(pk=user_pk).exists():
         return redirect("/eror?eror_text=Користувача з таким pk не існує.")
     on_whom = models.MyUser.objects.get(pk=user_pk)
+    if models.Subscription.objects.filter(who=request.user, on_whom=on_whom).exists():
+        return redirect("/eror?eror_text=Ви не можете підписуватися на людину двічі.")
     if request.user == on_whom:
         return redirect("/eror?eror_text=Ви не можете підписатися самі на себе.")
+    
     subscription = models.Subscription.objects.create(who=request.user, on_whom=on_whom)
     subscription.save()
 

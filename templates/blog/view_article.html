@@ -10,6 +10,7 @@
 <h2>{{ article.name }}</h2>
 <p>Категорія: {{ article.category }}</p>
 <p>Автор: <a href="{% url 'blog:view_user_info' article.author.username %}">{{ article.author.username }}</a></p>
+{% if liked != None %}
 <p>Чи подобається вам ця стаття:
     {% if liked == 0 %}
     <a href="{% url 'blog:like_article' article.pk %}"><img src="{% static 'img/not_pressed_like.png' %}" width="30px" height="30px"></a>
@@ -22,6 +23,7 @@
     <a href="{% url 'blog:undislike_article' article.pk %}"><img src="{% static 'img/pressed_dislike.png' %}" width="30px" height="30px"></a>
     {% endif%}
 </p>
+{% endif %}
 <hr>
 {% for element in elements %}
     {% if element.t == "text" %}<!-- Якщо це текстовий елемент -->
