@@ -57,3 +57,5 @@ class Subscription(models.Model): #Підписка користувача, на
     who = models.ForeignKey(MyUser, models.CASCADE, related_name="subscription_who")
     on_whom = models.ForeignKey(MyUser, models.CASCADE, related_name="subscription_on_whom")
     email_newsletter = models.BooleanField(default=False)
+
+    def __str__(self): return f"{self.who.username} on {self.on_whom.username}"

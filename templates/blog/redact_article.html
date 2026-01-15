@@ -22,9 +22,7 @@
     <!-- Елементи статті -->
     {% for element in elements %}
         {% if element.t == "text" %}<!-- Якщо це текстовий елемент -->
-        <textarea style="resize: both; width: 700px; height: 400px;" name="{{ element.num }}" required>
-        {{ element.text }}
-        </textarea>
+        <textarea style="resize: both; width: 700px; height: 400px;" name="{{ element.num }}" required>{{ element.text }}</textarea>
         <br>
         {% else %}<!-- Якщо це файловий елемент -->
             {% if element.file.url|endswith:".png" or element.file.url|endswith:".jpg" %}

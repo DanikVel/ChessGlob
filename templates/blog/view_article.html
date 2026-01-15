@@ -27,7 +27,7 @@
 <hr>
 {% for element in elements %}
     {% if element.t == "text" %}<!-- Якщо це текстовий елемент -->
-        <p>{{ element.text }}</p>
+        <p style="white-space: pre-line;">{{ element.text }}</p>
     {% else %}<!-- Якщо це файловий елемент -->
         {% if element.file.url|endswith:".png" or element.file.url|endswith:".jpg" %}
         <img src="{{ element.file.url }}" alt="Картинка">
