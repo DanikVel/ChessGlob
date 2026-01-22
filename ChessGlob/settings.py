@@ -41,7 +41,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "rest_framework", #Для API
     "blog",
-    "auth_sys"
+    "auth_sys",
+    "cloudinary", #Для media-файлів
+    "cloudinary_storage" #Для media-файлів
 ]
 
 MIDDLEWARE = [
@@ -125,6 +127,13 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR/"static"]
 STATIC_ROOT = BASE_DIR/"staticfiles"
 
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'#Для media-файлів
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+}
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR/"media"
 
