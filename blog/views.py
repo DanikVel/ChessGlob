@@ -333,8 +333,8 @@ def delete_comment(request, article_pk, comment_pk):
     if not models.Comment.objects.filter(pk=comment_pk).exists():
         return redirect("/eror?eror_text=Коментаря з таким pk не існує.")
     comment = models.Comment.objects.get(pk=comment_pk)
-    if request.user != comment.author:
-        return redirect("/eror?eror_text=Ви не можете видаляти чужі коментарі.")
+    if request.user != comment.author and request.user.role != request.user.Roles.ADMINISTRATOR and request.user != models.Article.objects.get(pk=article_pk).author:
+        return redirect("/eror?eror_text=Ви не можете видаляти чужі коментарі, якщо ви не адміністратор чи власник статті.")
 
     comment.delete()
 
