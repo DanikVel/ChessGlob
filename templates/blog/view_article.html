@@ -43,10 +43,11 @@
 {% endfor %}
 <hr>
 {% if comments %}
+<h3>Коментарі до статті:</h3>
 <ul>
     {% for comment in comments %}
     <li>{{ comment.author.username }}: {{ comment.text }}
-        {% if user == comment.author or user.role == comment.author.Roles.ADMINISTATOR %}
+        {% if user == comment.author or user == article.author or user.role == comment.author.Roles.ADMINISTRATOR %}
         <a class="btn btn-danger" href="{% url 'blog:delete_comment' article.pk comment.pk %}" role="button">Видалити</a>
         {% endif %}
     </li>
